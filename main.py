@@ -6,7 +6,7 @@ from discord.ext import commands
 
 
 TOKEN = config.token
-client = commands.AutoShardedBot(command_prefix=commands.when_mentioned_or('!'), help_command=None)
+client = commands.Bot(command_prefix=commands.when_mentioned_or('!'), help_command=None)
 
 
 def get_member(discordname):
@@ -74,14 +74,15 @@ async def start(ctx):
         for i in  range(6)[1:]:
             await guild.create_voice_channel(name=f"Talk {i}", category=talk_category)
         
-
+        #delete all roles except Admin / everyone / Bot
         for role in guild.roles:
             if (role.name == 'Admin' or role.name == '@everyone' or role.name == 'Bot') == False:
                 await role.delete()
 
           
+        
         role = await guild.create_role(name="BEANS", colour=discord.Colour(0x0000FF))
-        await client.add_roles(ctx.message.author, role)
+
         
 
 

@@ -20,14 +20,14 @@ async def on_ready():
     print(f'{client.user} has connected to Discord!')
 
 @client.command()
-async def createvc(ctx, channelName):
+async def createvc(ctx, channelName, category):
     guild = ctx.guild
     mbed = discord.Embed(
         title = "Success",
         description = f'Channel: {channelName} has been created!'
     )
     if ctx.author.guild_permissions.manage_channels:
-        await guild.create_voice_channel(name=channelName)
+        await guild.create_voice_channel(name=channelName, category=await guild.create_category(category))
         await ctx.send(embed=mbed)
 
 @client.command()
@@ -45,9 +45,11 @@ async def deletevc(ctx, vc: discord.VoiceChannel):
 async def help(ctx):
     guild = ctx.guild
     mbed = discord.Embed(
-        title = "Help",
-        description = f'!createvc <name>:  Will create a Voicechannel'
+        title = "Help"
     )
+    mbed.add_field(name="!start", value="Resets Entire Server (roles/channels)")
+    mbed.add_field(name="!createvc <name> <category>", value="Creates Voice Channel")
+    mbed.add_field(name="!deletevc <name>", value="Deletes Voice Channel")
     if ctx.author.guild_permissions.manage_channels:
         await ctx.send(embed=mbed)
 

@@ -1,9 +1,11 @@
+import config
+
 import discord
 from discord.ext import commands
 from discord.utils import get
 
 
-TOKEN = 'ODMxMjQ0MTcwMDk3NTkwMzIz.YHSadQ.KmCKjUhVY7eFvu4VPNljLvj7RQg'
+TOKEN = config.token
 client = commands.AutoShardedBot(command_prefix=commands.when_mentioned_or('!'), help_command=None)
 
 @client.event

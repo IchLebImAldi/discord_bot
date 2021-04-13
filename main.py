@@ -128,7 +128,18 @@ async def play(ctx):
         voice.play(audio, after=lambda e: repeat(ctx.guild, voice, audio))
         voice.is_playing()
     
+@client.command()
+async def playStr(ctx, name):
+    result = []
 
+# Wlaking top-down from the root
+    for root, dir, files in os.walk("D:\\Documents\\dev\Python\\discord_bot\\peep_songs"):
+        for file in files:
+            if name in file:
+                print("yess")
+                result.append(os.path.join(root, name))
+
+    print(result)
 
 @client.command()
 async def pause(ctx):

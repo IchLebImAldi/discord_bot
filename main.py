@@ -4,10 +4,37 @@ import discord
 from discord.ext import commands
 import youtube_dl
 import os
+import random
+
 
 
 TOKEN = config.token
 client = commands.Bot(command_prefix=commands.when_mentioned_or('!'), help_command=None)
+
+
+class Songs():
+    ctx = None
+
+    def __init__(self, ctx):
+        self.ctx = ctx
+
+    async def play(self):
+        channel = self.ctx.author.voice.channel
+
+        test = random.choice(os.listdir("D:\\Documents\\dev\Python\\discord_bot\\peep_songs")) 
+        print(test)
+
+        song_there = os.path.isfile("song.mp3")
+        
+        voiceChannel = self.ctx.author.voice.channel
+        
+        await voiceChannel.connect()
+        voice = discord.utils.get(client.voice_clients, guild=self.ctx.guild)
+        await client.change_presence(activity=discord.Game(name=test.replace(".mp3", "")))
+        voice.play(discord.FFmpegPCMAudio("peep_songs/"+ test))
+        voice.is_playing()
+        if channel and not voice.is_playing():
+            await self.ctx.send("Done")
 
 
 
@@ -97,6 +124,7 @@ async def start(ctx):
         role = await guild.create_role(name="BEANS", colour=discord.Colour(0x0000FF))
 @client.command()
 async def play(ctx, url):
+    
     song_there = os.path.isfile("song.mp3")
     try:
         if song_there:
@@ -124,6 +152,11 @@ async def play(ctx, url):
         if file.endswith(".mp3"):
             os.rename(file, "song.mp3")
     voice.play(discord.FFmpegPCMAudio("song.mp3"))
+
+@client.command()
+async def loop(ctx):
+    songs = Songs(ctx)
+    await songs.play()
 
 @client.command()
 async def pause(ctx):
@@ -155,3 +188,4 @@ async def join(ctx):
     await channel.connect()
 
 client.run(TOKEN)
+

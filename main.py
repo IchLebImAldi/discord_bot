@@ -2,22 +2,27 @@ import config
 
 import discord
 from discord.ext import commands
-
+import youtube_dl
+import os
 
 
 TOKEN = config.token
 client = commands.Bot(command_prefix=commands.when_mentioned_or('!'), help_command=None)
 
 
-def get_member(discordname):
-    for guild in client.guilds:
-        for member in guild.members:
-            if member.name == discordname:
-                return member
+
+def get_category_by_name(guild, category_name):
+    category = None
+    for c in guild.categories:
+        if c.name == category_name:
+            category = c
+            break
+    return category
 
 @client.event
 async def on_ready():
     print(f'{client.user} has connected to Discord!')
+
 
 @client.command()
 async def createvc(ctx, channelName, category):
@@ -29,6 +34,12 @@ async def createvc(ctx, channelName, category):
     if ctx.author.guild_permissions.manage_channels:
         await guild.create_voice_channel(name=channelName, category=await guild.create_category(category))
         await ctx.send(embed=mbed)
+
+@createvc.error
+async def createvc_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("Please specify a name and a category for the vc.")
+
 
 @client.command()
 async def deletevc(ctx, vc: discord.VoiceChannel):
@@ -78,14 +89,44 @@ async def start(ctx):
         
         #delete all roles except Admin / everyone / Bot
         for role in guild.roles:
-            if (role.name == 'Admin' or role.name == '@everyone' or role.name == 'Bot') == False:
+            if not (role.name == 'Admin' or role.name == '@everyone' or role.name == 'Bot'):
                 await role.delete()
 
           
         
         role = await guild.create_role(name="BEANS", colour=discord.Colour(0x0000FF))
+@client.command()
+async def play(ctx, url):
+    song_there = os.path.isfile("song.mp3")
+    try:
+        if song_there:
+            os.remove("song.mp3")
+    except PermissionError:
+        await ctx.send("Wait for the current playing music to end or use the 'stop' command")
+        return
 
-        
+    voiceChannel = ctx.author.voice.channel
+    await voiceChannel.connect()
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
 
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+    }
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+    for file in os.listdir("./"):
+        if file.endswith(".mp3"):
+            os.rename(file, "song.mp3")
+    voice.play(discord.FFmpegPCMAudio("song.mp3"))
+
+@client.command()
+async def join(ctx):
+    channel = ctx.author.voice.channel
+    await channel.connect()
 
 client.run(TOKEN)

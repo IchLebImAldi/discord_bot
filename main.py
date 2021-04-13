@@ -109,37 +109,54 @@ async def start(ctx):
         role = await guild.create_role(name="BEANS", colour=discord.Colour(0x0000FF))
 
 @client.command()
-async def play(ctx):
+async def play(ctx, *args):
     await ctx.channel.purge(limit=1)
     channel = ctx.author.voice.channel
     await channel.connect()
     voice = get(client.voice_clients, guild=ctx.guild)
   
-    def repeat(guild, voice, audio):
-        song = random.choice(os.listdir("D:\\Documents\\dev\Python\\discord_bot\\peep_songs")) 
-        print(song)        
-        voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
-        voice.play(discord.FFmpegPCMAudio("peep_songs/"+ song), after=lambda e: repeat(guild, voice, audio))
-        voice.is_playing()
-        
-
-    if channel and not voice.is_playing():
-        audio = discord.FFmpegPCMAudio('audio.mp3')
-        voice.play(audio, after=lambda e: repeat(ctx.guild, voice, audio))
-        voice.is_playing()
     
-@client.command()
-async def playStr(ctx, name):
-    result = []
+    if not args:
+    
+        def repeat(guild, voice, audio):
+            song = random.choice(os.listdir("D:\\Documents\\dev\Python\\discord_bot\\peep_songs")) 
+            print(song)        
+            voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+            voice.play(discord.FFmpegPCMAudio("peep_songs/"+ song), after=lambda e: repeat(guild, voice, audio))
+            voice.is_playing()
+            
 
-# Wlaking top-down from the root
-    for root, dir, files in os.walk("D:\\Documents\\dev\Python\\discord_bot\\peep_songs"):
-        for file in files:
-            if name in file:
-                print("yess")
-                result.append(os.path.join(root, name))
+        if channel and not voice.is_playing():
+            audio = discord.FFmpegPCMAudio('audio.mp3')
+            voice.play(audio, after=lambda e: repeat(ctx.guild, voice, audio))
+            voice.is_playing()
 
-    print(result)
+    else:
+        result = ""
+        name = " ".join(args) 
+        
+        # Wlaking top-down from the root
+        for root, dir, files in os.walk("D:\\Documents\\dev\Python\\discord_bot\\peep_songs"):
+            for file in files:
+                if name in file:
+                    print("yess")
+                    result = file
+
+           
+        voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+        voice.play(discord.FFmpegPCMAudio("peep_songs/"+ result))
+        voice.is_playing()
+
+        await client.change_presence(activity=discord.Game(name=result))
+
+        mbed = discord.Embed(
+            title = "Now playing",
+            description = result
+        )
+        await ctx.send(embed=mbed)
+
+        print(result)
+
 
 @client.command()
 async def pause(ctx):

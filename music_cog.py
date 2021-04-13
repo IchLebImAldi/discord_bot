@@ -4,9 +4,11 @@ from discord.ext import commands
 from youtube_dl import YoutubeDL
 
 class music_cog(commands.Cog):
+    
+
     def __init__(self, bot):
         self.bot = bot
-    
+        self.test = ['https://www.youtube.com/watch?v=BD2ypP3Xwq8&list=PL3zKUp2BPbX41b92Evdp0Ju-p2sAHsbsE&index=21', 'https://www.youtube.com/watch?v=7UGEL_CiRQQ&list=PL3zKUp2BPbX41b92Evdp0Ju-p2sAHsbsE&index=23']
         #all the music related stuff
         self.is_playing = False
 
@@ -57,15 +59,13 @@ class music_cog(commands.Cog):
             
             #changes activity to song title
             await self.bot.change_presence(activity=discord.Game(name=self.music_queue[0][0]['title']))
-            
+
             #remove the first element as you are currently playing it
             self.music_queue.pop(0)
 
             self.vc.play(discord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS), after=lambda e: self.play_next())
         else:
-            self.is_playing = False
-
-        
+            self.is_playing = False        
 
 
     @commands.command(name="play", help="Plays a selected song from youtube")

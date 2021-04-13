@@ -55,7 +55,9 @@ class music_cog(commands.Cog):
             else:
                 await self.vc.move_to(self.music_queue[0][1])
             
-            print(self.music_queue)
+            #changes activity to song title
+            await self.bot.change_presence(activity=discord.Game(name=self.music_queue[0][0]['title']))
+            
             #remove the first element as you are currently playing it
             self.music_queue.pop(0)
 
@@ -64,6 +66,7 @@ class music_cog(commands.Cog):
             self.is_playing = False
 
         
+
 
     @commands.command(name="play", help="Plays a selected song from youtube")
     async def p(self, ctx, *args):

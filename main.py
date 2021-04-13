@@ -67,7 +67,7 @@ async def help(ctx):
     mbed.add_field(name=".start", value="Resets Entire Server (roles/channels)")
     mbed.add_field(name=".createvc <name> <category>", value="Creates Voice Channel")
     mbed.add_field(name=".deletevc <name>", value="Deletes Voice Channel")
-    mbed.add_field(name=".play", value="Starts Lil Peep Radio")
+    mbed.add_field(name=".play (<name>)", value="Starts Lil Peep Radio")
     mbed.add_field(name=".pause", value="Pauses Radio")
     mbed.add_field(name=".resume", value="Resumes Radio")
     mbed.add_field(name=".stop", value="Stops Radio")
@@ -112,6 +112,7 @@ async def start(ctx):
 async def play(ctx, *args):
     await ctx.channel.purge(limit=1)
     channel = ctx.author.voice.channel
+    
     await channel.connect()
     voice = get(client.voice_clients, guild=ctx.guild)
   
@@ -151,7 +152,7 @@ async def play(ctx, *args):
 
         mbed = discord.Embed(
             title = "Now playing",
-            description = result
+            description = result.strip(".mp3", "")
         )
         await ctx.send(embed=mbed)
 

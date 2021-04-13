@@ -1,44 +1,20 @@
 import config
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
+from discord.utils import get
 import youtube_dl
 import os
 import random
-
+import time
 
 
 TOKEN = config.token
-client = commands.Bot(command_prefix=commands.when_mentioned_or('!'), help_command=None)
-
-
-class Songs():
-    ctx = None
-
-    def __init__(self, ctx):
-        self.ctx = ctx
-
-    async def play(self):
-        channel = self.ctx.author.voice.channel
-
-        test = random.choice(os.listdir("D:\\Documents\\dev\Python\\discord_bot\\peep_songs")) 
-        print(test)
-
-        song_there = os.path.isfile("song.mp3")
-        
-        voiceChannel = self.ctx.author.voice.channel
-        
-        await voiceChannel.connect()
-        voice = discord.utils.get(client.voice_clients, guild=self.ctx.guild)
-        await client.change_presence(activity=discord.Game(name=test.replace(".mp3", "")))
-        voice.play(discord.FFmpegPCMAudio("peep_songs/"+ test))
-        voice.is_playing()
-        if channel and not voice.is_playing():
-            await self.ctx.send("Done")
-
+client = commands.Bot(command_prefix=commands.when_mentioned_or('.'), help_command=None)
 
 
 def get_category_by_name(guild, category_name):
+    
     category = None
     for c in guild.categories:
         if c.name == category_name:
@@ -53,6 +29,7 @@ async def on_ready():
 
 @client.command()
 async def createvc(ctx, channelName, category):
+    await ctx.channel.purge(limit=1)
     guild = ctx.guild
     mbed = discord.Embed(
         title = "Success",
@@ -70,6 +47,7 @@ async def createvc_error(ctx, error):
 
 @client.command()
 async def deletevc(ctx, vc: discord.VoiceChannel):
+    await ctx.channel.purge(limit=1)
     guild = ctx.guild
     mbed = discord.Embed(
         title = "Success",
@@ -81,13 +59,19 @@ async def deletevc(ctx, vc: discord.VoiceChannel):
 
 @client.command()
 async def help(ctx):
+    await ctx.channel.purge(limit=1)
     guild = ctx.guild
     mbed = discord.Embed(
         title = "Help"
     )
-    mbed.add_field(name="!start", value="Resets Entire Server (roles/channels)")
-    mbed.add_field(name="!createvc <name> <category>", value="Creates Voice Channel")
-    mbed.add_field(name="!deletevc <name>", value="Deletes Voice Channel")
+    mbed.add_field(name=".start", value="Resets Entire Server (roles/channels)")
+    mbed.add_field(name=".createvc <name> <category>", value="Creates Voice Channel")
+    mbed.add_field(name=".deletevc <name>", value="Deletes Voice Channel")
+    mbed.add_field(name=".play", value="Starts Lil Peep Radio")
+    mbed.add_field(name=".pause", value="Pauses Radio")
+    mbed.add_field(name=".resume", value="Resumes Radio")
+    mbed.add_field(name=".stop", value="Stops Radio")
+    mbed.add_field(name=".skip", value="Skips current Song")
     if ctx.author.guild_permissions.manage_channels:
         await ctx.send(embed=mbed)
 
@@ -95,6 +79,7 @@ async def help(ctx):
 @client.command()
 # will delete everything on the server and generate all necessary roles / channels / categories 
 async def start(ctx):
+    
     guild = ctx.guild
     author = ctx.author
     mbed = discord.Embed(
@@ -122,44 +107,32 @@ async def start(ctx):
           
         
         role = await guild.create_role(name="BEANS", colour=discord.Colour(0x0000FF))
-@client.command()
-async def play(ctx, url):
-    
-    song_there = os.path.isfile("song.mp3")
-    try:
-        if song_there:
-            os.remove("song.mp3")
-    except PermissionError:
-        await ctx.send("Wait for the current playing music to end or use the 'stop' command")
-        return
-
-    voiceChannel = ctx.author.voice.channel
-    
-    await voiceChannel.connect()
-    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
-
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-    }
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
-    for file in os.listdir("./"):
-        if file.endswith(".mp3"):
-            os.rename(file, "song.mp3")
-    voice.play(discord.FFmpegPCMAudio("song.mp3"))
 
 @client.command()
-async def loop(ctx):
-    songs = Songs(ctx)
-    await songs.play()
+async def play(ctx):
+    await ctx.channel.purge(limit=1)
+    channel = ctx.author.voice.channel
+    await channel.connect()
+    voice = get(client.voice_clients, guild=ctx.guild)
+  
+    def repeat(guild, voice, audio):
+        song = random.choice(os.listdir("D:\\Documents\\dev\Python\\discord_bot\\peep_songs")) 
+        print(song)        
+        voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+        voice.play(discord.FFmpegPCMAudio("peep_songs/"+ song), after=lambda e: repeat(guild, voice, audio))
+        voice.is_playing()
+        
+
+    if channel and not voice.is_playing():
+        audio = discord.FFmpegPCMAudio('audio.mp3')
+        voice.play(audio, after=lambda e: repeat(ctx.guild, voice, audio))
+        voice.is_playing()
+    
+
 
 @client.command()
 async def pause(ctx):
+    await ctx.channel.purge(limit=1)
     voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
     if voice.is_playing():
         voice.pause()
@@ -169,23 +142,43 @@ async def pause(ctx):
 
 @client.command()
 async def resume(ctx):
+    await ctx.channel.purge(limit=1)
     voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
     if voice.is_paused():
         voice.resume()
     else:
         await ctx.send("The audio is not paused.")
 
+@client.command()
+async def skip(ctx):
+    await ctx.channel.purge(limit=1)
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice.is_playing():
+        voice.stop()
+    else:
+        await ctx.send("Currently no audio is playing.")
+
 
 @client.command()
 async def stop(ctx):
+    await ctx.channel.purge(limit=1)
+    for x in client.voice_clients:
+        if(x.guild == ctx.message.guild):
+            return await x.disconnect()
+
     voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
-    voice.stop()
+    voice.stop(ctx.guild)
 
 
 @client.command()
 async def join(ctx):
+    await ctx.channel.purge(limit=1)
     channel = ctx.author.voice.channel
     await channel.connect()
+
+@client.command()
+async def clear(ctx, amount=10):
+    await ctx.channel.purge(limit=amount)
 
 client.run(TOKEN)
 

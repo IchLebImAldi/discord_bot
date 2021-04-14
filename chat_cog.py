@@ -8,4 +8,4 @@ class chat_cog(commands.Cog):
 
     @commands.command(name="clear", help="Clear chat")
     async def c(self, ctx, amount=10):
-        await ctx.channel.purge(limit=amount+1)
+        await ctx.channel.purge(limit=amount)

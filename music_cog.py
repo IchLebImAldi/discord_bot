@@ -24,8 +24,10 @@ class music_cog(commands.Cog):
 
 
     # returns a song title random chosen from idle_songs.txt
-    def get_next_idle_song(self):
-        return random.choice(list(open('peep_songs/idle_songs.txt', encoding="utf-8")))
+    async def get_next_idle_song(self):
+        title = random.choice(list(open('peep_songs/idle_songs.txt', encoding="utf-8")))
+        await self.bot.change_presence(activity=discord.Game(name=title))
+        return title
 
 
     def get_voice_channel(self, ctx):
@@ -98,7 +100,7 @@ class music_cog(commands.Cog):
                 #you need to be connected so that the bot knows where to go
                 await ctx.send("Connect to a voice channel!")
 
-            song = self.search_yt(self.get_next_idle_song()+ " Peep")
+            song = self.search_yt(await self.get_next_idle_song()+ " Peep")
             self.music_queue.append([song, voice_channel])
             if self.is_playing == False:
                 await self.play_music(ctx)
@@ -153,7 +155,7 @@ class music_cog(commands.Cog):
            # self.vc = ctx.author.voice.channel
             await self.play_music(ctx)
             
-    @commands.command(name="queue", help="Displays the current songs in queue")
+    @commands.command(name="queue", aliases=['q'], help="Displays the current songs in queue")
     async def q(self, ctx):
         retval = ""
         for i in range(0, len(self.music_queue)):

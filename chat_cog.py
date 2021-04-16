@@ -6,6 +6,6 @@ class chat_cog(commands.Cog):
         self.bot = bot
 
 
-    @commands.command(name="clear", help="Clear chat")
+    @commands.command(name="clear", aliases=['c'], help="Clear chat")
     async def c(self, ctx, amount=10):
         await ctx.channel.purge(limit=amount)

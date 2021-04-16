@@ -8,4 +8,9 @@ class info_cog(commands.Cog):
 
     @commands.command(name="help", help="Informations about this bot")
     async def h(self, ctx):
-       await ctx.send("Help")
+        embed = discord.Embed()
+        embed.title = "Help"
+        
+
+
+        await ctx.send(embed=embed)
